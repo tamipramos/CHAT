@@ -1,32 +1,27 @@
-import socket
-import threading
+import urwid
 
-def receive_messages(sock):
-    # Recibir mensajes del servidor
-    while True:
-        msg = sock.recv(1024)
-        print(msg.decode())
+def main():
+    # Crea un widget Edit y lo coloca en un Frame
+    widget_edit = urwid.Edit(multiline=True)
+    widget_frame = urwid.Frame(urwid.Filler(widget_edit))
 
-def send_messages(sock, nickname):
-    # Enviar mensajes al servidor
-    while True:
-        msg = input(f'{nickname}: ')
-        sock.sendall(msg.encode())
+    # Crea un widget Pile que contiene el Frame y un widget Text
+    widget_text = urwid.Text("Presione Ctrl-C para salir.")
+    widget_pile = urwid.Pile([widget_frame, widget_text])
 
-# Configuración del cliente
-host = '192.168.16.113'
-port = 8080
+    # Crea un widget BoxAdapter para que el widget Pile ocupe toda la pantalla excepto la última línea
+    widget_adapter = urwid.BoxAdapter(widget_pile, height=("relative", 100))
 
-client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-client_socket.connect((host, port))
+    # Crea un widget Divider y lo coloca en la última línea de la pantalla
+    widget_divider = urwid.Divider()
+    widget_footer = urwid.Pile([widget_divider, urwid.Text("Escriba su mensaje y presione Enter.")])
+    widget_footer_adapter = urwid.BoxAdapter(widget_footer, height=("pack", 2))
 
-# Ingresar un apodo o nickname
-nickname = input("Ingresa tu apodo: ")
-client_socket.sendall(nickname.encode())
+    # Crea un widget Overlay que contiene el widget BoxAdapter y el widget Divider
+    widget_overlay = urwid.Overlay(widget_adapter, widget_footer_adapter, align="center", width=("relative", 100), height=("relative", 100), valign="bottom")
 
-# Iniciar los hilos para recibir y enviar mensajes
-receive_thread = threading.Thread(target=receive_messages, args=(client_socket,))
-receive_thread.start()
+    # Ejecuta el bucle principal de Urwid
+    urwid.MainLoop(widget_overlay).run()
 
-send_thread = threading.Thread(target=send_messages, args=(client_socket,nickname))
-send_thread.start()
+if __name__ == "__main__":
+    main()

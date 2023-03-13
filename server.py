@@ -6,7 +6,6 @@ def handle_client(conn, addr):
     print(f"Nuevo cliente conectado: {addr}")
 
     # Pedir el apodo del cliente
-    conn.sendto("Ingresa tu apodo: ".encode(), addr)
     nickname = conn.recv(1024).decode()
 
     while True:
